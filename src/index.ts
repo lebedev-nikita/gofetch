@@ -21,6 +21,12 @@ export class TextParseError extends Error {
   }
 }
 
+export class UnexpectedFetchError extends Error {
+  constructor(err: Error) {
+    super(err.message, { cause: err });
+  }
+}
+
 export type JsonValue =
   | string
   | number
@@ -29,28 +35,31 @@ export type JsonValue =
   | { [key: string]: JsonValue }
   | JsonValue[];
 
-export async function gofetch(...args: Parameters<typeof fetch>) {
-  const res = await SafePromise.from(
+async function parseText(res: Response) {
+  return SafePromise.from(res.text(), (err) => new TextParseError(err.message, { cause: err }));
+}
+
+export function gofetch(...args: Parameters<typeof fetch>) {
+  return SafePromise.from(
     Promise.try(() => fetch(...args)),
     (err) => new FetchError(err.message, { cause: err }),
+  ).pipe(
+    (res) => ({
+      ok: res.ok,
+      status: res.status,
+      async json() {
+        const source = await parseText(res);
+        if (source instanceof TextParseError) return source;
+
+        return SafePromise.try(
+          () => JSON.parse(source) as JsonValue,
+          () => new JsonParseError(source),
+        );
+      },
+      text() {
+        return parseText(res);
+      },
+    }),
+    (err) => new UnexpectedFetchError(err),
   );
-
-  if (res instanceof FetchError) return SafePromise.resolve(res);
-
-  return SafePromise.resolve({
-    ok: res.ok,
-    status: res.status,
-    async json() {
-      const source = await this.text();
-      if (source instanceof TextParseError) return source;
-
-      return SafePromise.try(
-        () => JSON.parse(source) as JsonValue,
-        () => new JsonParseError(source),
-      );
-    },
-    async text() {
-      return SafePromise.from(res.text(), (err) => new TextParseError(err.message, { cause: err }));
-    },
-  });
 }

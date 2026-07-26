@@ -1,6 +1,12 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, assert, describe, expect, it, vi } from "vitest";
 
-import { FetchError, gofetch, JsonParseError, TextParseError } from "../src/index.js";
+import {
+  FetchError,
+  gofetch,
+  JsonParseError,
+  TextParseError,
+  UnexpectedFetchError,
+} from "../src/index.js";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -21,6 +27,8 @@ describe("gofetch", () => {
     });
     expect(result).not.toBeInstanceOf(FetchError);
     if (result instanceof FetchError) throw result;
+    if (result instanceof Error) throw result;
+
     expect(result).toMatchObject({ ok: true, status: 201 });
     await expect(result.text()).resolves.toBe("ok");
   });
@@ -33,8 +41,7 @@ describe("gofetch", () => {
 
     const result = await gofetch("https://api.example.com/missing");
 
-    expect(result).not.toBeInstanceOf(FetchError);
-    if (result instanceof FetchError) throw result;
+    assert(!(result instanceof FetchError));
     expect(result).toMatchObject({ ok: false, status: 404 });
   });
 
@@ -72,6 +79,7 @@ describe("gofetch", () => {
     const result = await gofetch("https://api.example.com/user");
 
     if (result instanceof FetchError) throw result;
+    if (result instanceof UnexpectedFetchError) throw result;
     await expect(result.json()).resolves.toEqual({ id: 1, active: true });
   });
 
@@ -79,8 +87,9 @@ describe("gofetch", () => {
     vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(new Response("not json")));
 
     const result = await gofetch("https://api.example.com/user");
-
     if (result instanceof FetchError) throw result;
+    if (result instanceof UnexpectedFetchError) throw result;
+
     const body = await result.json();
     expect(body).toBeInstanceOf(JsonParseError);
     expect(body).toMatchObject({ message: "invalid json: not json" });
@@ -100,6 +109,7 @@ describe("gofetch", () => {
     const result = await gofetch("https://api.example.com/user");
 
     if (result instanceof FetchError) throw result;
+    if (result instanceof UnexpectedFetchError) throw result;
     const body = await result.text();
     expect(body).toBeInstanceOf(TextParseError);
     expect(body).toMatchObject({ message: "body stream failed", cause });
