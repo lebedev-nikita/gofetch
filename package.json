@@ -1,6 +1,6 @@
 {
   "name": "@lebedevna/gofetch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A fetch alternative that returns errors instead of throwing them.",
   "keywords": [
     "fetch",

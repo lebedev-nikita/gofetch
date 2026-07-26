@@ -31,13 +31,13 @@ export type JsonValue =
 
 export async function gofetch(...args: Parameters<typeof fetch>) {
   const res = await SafePromise.from(
-    Promise.resolve().then(() => fetch(...args)),
+    Promise.try(() => fetch(...args)),
     (err) => new FetchError(err.message, { cause: err }),
   );
 
-  if (res instanceof FetchError) return res;
+  if (res instanceof FetchError) return SafePromise.resolve(res);
 
-  return {
+  return SafePromise.resolve({
     ok: res.ok,
     status: res.status,
     async json() {
@@ -50,10 +50,7 @@ export async function gofetch(...args: Parameters<typeof fetch>) {
       );
     },
     async text() {
-      return SafePromise.from(
-        res.text(),
-        (err) => new TextParseError(err.message, { cause: err }),
-      );
+      return SafePromise.from(res.text(), (err) => new TextParseError(err.message, { cause: err }));
     },
-  };
+  });
 }
