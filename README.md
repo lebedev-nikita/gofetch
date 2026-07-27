@@ -1,9 +1,45 @@
 # gofetch
 
+> **Deprecated:** This package is no longer maintained. For new projects, use
+> the native [`fetch`](https://developer.mozilla.org/docs/Web/API/Fetch_API)
+> API with [`neverthrow`](https://github.com/supermacro/neverthrow) to model
+> failures explicitly.
+
 `gofetch` is a small, fetch-compatible TypeScript wrapper that represents
 request and body-reading failures as values instead of rejected promises.
 It retains the familiar `fetch` request arguments and response `ok` and
 `status` fields.
+
+## Recommended replacement
+
+```sh
+pnpm add neverthrow
+```
+
+Wrap `fetch` with `ResultAsync.fromPromise`. HTTP errors are still successful
+fetch responses, so handle `response.ok` or `response.status` in the success
+branch.
+
+```ts
+import { ResultAsync } from "neverthrow";
+
+const result = await ResultAsync.fromPromise(
+  fetch("https://api.example.com/users"),
+  (cause) => new Error("Request failed", { cause }),
+);
+
+result.match(
+  (response) => {
+    if (!response.ok) {
+      console.error("Unexpected status:", response.status);
+      return;
+    }
+
+    return response.json();
+  },
+  (error) => console.error("Request failed:", error.message),
+);
+```
 
 ## Install
 

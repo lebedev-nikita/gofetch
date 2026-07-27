@@ -1,7 +1,8 @@
 {
   "name": "@lebedevna/gofetch",
   "version": "0.1.4",
-  "description": "A fetch alternative that returns errors instead of throwing them.",
+  "description": "Deprecated: use the native Fetch API with neverthrow instead.",
+  "deprecated": "This package is deprecated. Use the native Fetch API with neverthrow instead.",
   "keywords": [
     "fetch",
     "http",
