@@ -1,12 +1,6 @@
 import { afterEach, assert, describe, expect, it, vi } from "vitest";
 
-import {
-  FetchError,
-  gofetch,
-  JsonParseError,
-  TextParseError,
-  UnexpectedFetchError,
-} from "../src/index.js";
+import { FetchError, gofetch, JsonParseError, TextParseError } from "../src/index.js";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -79,7 +73,6 @@ describe("gofetch", () => {
     const result = await gofetch("https://api.example.com/user");
 
     if (result instanceof FetchError) throw result;
-    if (result instanceof UnexpectedFetchError) throw result;
     await expect(result.json()).resolves.toEqual({ id: 1, active: true });
   });
 
@@ -88,7 +81,6 @@ describe("gofetch", () => {
 
     const result = await gofetch("https://api.example.com/user");
     if (result instanceof FetchError) throw result;
-    if (result instanceof UnexpectedFetchError) throw result;
 
     const body = await result.json();
     expect(body).toBeInstanceOf(JsonParseError);
@@ -109,7 +101,6 @@ describe("gofetch", () => {
     const result = await gofetch("https://api.example.com/user");
 
     if (result instanceof FetchError) throw result;
-    if (result instanceof UnexpectedFetchError) throw result;
     const body = await result.text();
     expect(body).toBeInstanceOf(TextParseError);
     expect(body).toMatchObject({ message: "body stream failed", cause });

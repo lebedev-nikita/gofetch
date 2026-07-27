@@ -16,17 +16,11 @@ Requires Node.js 18+ or another runtime with the standard Fetch API.
 ## Usage
 
 ```ts
-import {
-  FetchError,
-  gofetch,
-  JsonParseError,
-  TextParseError,
-  UnexpectedFetchError,
-} from "@lebedevna/gofetch";
+import { FetchError, gofetch, JsonParseError, TextParseError } from "@lebedevna/gofetch";
 
 const result = await gofetch("https://api.example.com/users");
 
-if (result instanceof FetchError || result instanceof UnexpectedFetchError) {
+if (result instanceof FetchError) {
   console.error("Request failed:", result.message);
 } else if (!result.ok) {
   console.error("Unexpected status:", result.status);
@@ -50,7 +44,6 @@ Accepts the same arguments as global `fetch` and returns:
 ```ts
 Promise<
   | FetchError
-  | UnexpectedFetchError
   | {
       ok: boolean;
       status: number;
@@ -68,8 +61,6 @@ Promise<
 - `FetchError` — the request could not be started or completed, including a
   synchronous error from `fetch`, an abort, or a network failure. The original
   error is available through `cause`.
-- `UnexpectedFetchError` — an unexpected error while converting a successful
-  fetch result into the wrapper response. Its `cause` is the original error.
 - `TextParseError` — the response body could not be read. Its `cause` is the
   original error.
 - `JsonParseError` — the response body was read but was not valid JSON. Its

@@ -21,12 +21,6 @@ export class TextParseError extends Error {
   }
 }
 
-export class UnexpectedFetchError extends Error {
-  constructor(err: Error) {
-    super(err.message, { cause: err });
-  }
-}
-
 export type JsonValue =
   | string
   | number
@@ -60,6 +54,6 @@ export function gofetch(...args: Parameters<typeof fetch>) {
         return parseText(res);
       },
     }),
-    (err) => new UnexpectedFetchError(err),
+    (err): never => void 0 as never,
   );
 }
